@@ -280,6 +280,16 @@ h2{font-weight:800}
 @keyframes order-arrival{0%{opacity:0;transform:translateX(155%) rotateY(-48deg) scale(.77)}20%,73%{opacity:1;transform:translateX(0) rotateY(0) scale(1)}100%{opacity:0;transform:translateX(155%) rotateY(48deg) scale(.77)}}
 @media(prefers-reduced-motion:reduce){.order-mascot.is-playing{animation:none;visibility:hidden}}
 </style>
+<style>
+.flight-picker-panel{position:absolute;z-index:18;top:calc(100% + 7px);left:0;width:min(100%,320px);min-width:min(250px,100%);box-sizing:border-box;padding:10px;border:1px solid #d2d8fa;border-radius:14px;background:#fff;color:#20224a;box-shadow:0 12px 30px #24204d30}
+.flight-picker-panel[hidden]{display:none}
+.flight-picker-header{display:grid;grid-template-columns:36px 1fr 36px;align-items:center;text-align:center;gap:4px;margin-bottom:7px}
+.flight-picker-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;text-align:center}
+.flight-picker-panel button{min-height:32px;padding:0;border:0;border-radius:7px;background:#edf0ff;color:#222458;cursor:pointer}
+.flight-picker-panel button:hover:not(:disabled),.flight-picker-panel button[aria-pressed="true"]{background:#5445d4;color:#fff}
+.flight-picker-panel button:disabled{opacity:.35;cursor:default}
+#flights .flight-panel:has(.flight-picker-panel:not([hidden])){position:relative;z-index:19}
+</style>
 </head>
 <body>
 
@@ -309,9 +319,9 @@ h2{font-weight:800}
   <label class="route-choice"><span>İstiqamət</span>
   <select name="destination">
     <option value="istanbul">İstanbul · IST / SAW</option>
-    <option value="antalya">Antalya · Tur paketi</option>
-    <option value="tbilisi">Tbilisi · Tur paketi</option>
-    <option value="dubai">Dubay · Tur paketi</option>
+    <option value="antalya">Antalya</option>
+    <option value="tbilisi">Tbilisi</option>
+    <option value="dubai">Dubay</option>
   </select>
 </label>
 </div>
@@ -690,12 +700,79 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
   }
   for (const calendar of form.querySelectorAll('[data-calendar]')) {
     const input = form.elements[calendar.dataset.calendar];
-    if (typeof input.showPicker !== 'function') continue;
+    const panel = document.createElement('div');
+    panel.className = 'flight-picker-panel';
+    panel.hidden = true;
+    calendar.parentElement.appendChild(panel);
     calendar.hidden = false;
     calendar.parentElement.classList.add('has-picker');
+    calendar.setAttribute('aria-expanded', 'false');
+    const monthFormat = new Intl.DateTimeFormat('az-AZ', {month:'long',year:'numeric',timeZone:'UTC'});
+    const iso = date => date.toISOString().slice(0,10);
+    let month;
+    function close() {
+      panel.hidden = true;
+      calendar.setAttribute('aria-expanded','false');
+    }
+    function render() {
+      const row = document.createElement('div');
+      row.className = 'flight-picker-header';
+      const title = document.createElement('strong');
+      title.textContent = monthFormat.format(month);
+      function arrow(step, text, label) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = text;
+        button.setAttribute('aria-label',label);
+        const next = new Date(Date.UTC(month.getUTCFullYear(),month.getUTCMonth()+step,1));
+        const nextEnd = new Date(Date.UTC(next.getUTCFullYear(),next.getUTCMonth()+1,0));
+        button.disabled = iso(nextEnd) < input.min || iso(next) > input.max;
+        button.onclick = () => { month = next; render(); };
+        return button;
+      }
+      row.append(arrow(-1,'‹','Əvvəlki ay'),title,arrow(1,'›','Növbəti ay'));
+      const grid = document.createElement('div');
+      grid.className = 'flight-picker-grid';
+      for (const label of ['B.e.','Ç.a.','Ç.','C.a.','C.','Ş.','B.']) {
+        const heading=document.createElement('small');
+        heading.textContent=label;
+        grid.append(heading);
+      }
+      const offset=(month.getUTCDay()+6)%7;
+      for(let i=0;i<offset;i++) grid.append(document.createElement('span'));
+      const days=new Date(Date.UTC(month.getUTCFullYear(),month.getUTCMonth()+1,0)).getUTCDate();
+      for(let day=1;day<=days;day++){
+        const button=document.createElement('button');
+        const value=iso(new Date(Date.UTC(month.getUTCFullYear(),month.getUTCMonth(),day)));
+        button.type='button';
+        button.textContent=String(day);
+        button.setAttribute('aria-label',day+' '+monthFormat.format(month));
+        button.disabled=value<input.min||value>input.max;
+        button.setAttribute('aria-pressed',String(value===input.value));
+        button.onclick=()=>{
+          input.value=value;
+          input.dispatchEvent(new Event('input',{bubbles:true}));
+          close();
+          calendar.focus();
+        };
+        grid.append(button);
+      }
+      panel.replaceChildren(row,grid);
+    }
     calendar.addEventListener('click', () => {
-      try { input.showPicker(); }
-      catch { input.focus(); }
+      if(!panel.hidden){close();return;}
+      const selected=input.value>=input.min&&input.value<=input.max?input.value:input.min;
+      const date=new Date(selected+'T00:00:00Z');
+      month=new Date(Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),1));
+      render();
+      panel.hidden=false;
+      calendar.setAttribute('aria-expanded','true');
+    });
+    document.addEventListener('click',event=>{
+      if(!calendar.parentElement.contains(event.target))close();
+    });
+    panel.addEventListener('keydown',event=>{
+      if(event.key==='Escape'){close();calendar.focus();}
     });
   }
   function animatePrice(element, amount) {
@@ -741,25 +818,22 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
     returnDate.min = departure.value || departure.min;
     result.hidden = link.hidden = true;
     const live = destination.value === 'istanbul';
-    button.formNoValidate = !live;
-    actionLabel.textContent = live ? 'Canlı qiyməti yoxla' : 'Tur paketini hesabla';
+    button.formNoValidate = false;
+    actionLabel.textContent = live ? 'Canlı qiyməti yoxla' : 'Bilet təklifi al';
     facts.hidden = extrasSection.hidden = !live;
-    status.textContent = live ? description : 'Bu istiqamət üçün təxmini tur paketinə bax.';
+    status.textContent = live ? description : 'Bu istiqamət üzrə bilet təklifini WhatsApp-dan soruşa bilərsən.';
 
   });
   form.addEventListener('submit', async event => {
     event.preventDefault();
     if (destination.value !== 'istanbul') {
-      S.d = destination.value;
-      if (departure.value && departure.checkValidity()) {
-        S.date = departure.value;
-        document.querySelector('#date').value = S.date;
-        const nights = (Date.parse(returnDate.value) - Date.parse(departure.value)) / 86400000;
-        if (Number.isInteger(nights) && nights >= 1 && nights <= 30) S.n = nights;
-      }
-      fix();
-      draw();
-      document.querySelector('#plan').scrollIntoView({behavior: reducePrice ? 'auto' : 'smooth'});
+      const city = C.d[destination.value]?.n;
+      if (!city) return;
+      const message = ['Salam! Aviabilet təklifi almaq istəyirəm.',
+        'Bakı — ' + city, 'Gediş: ' + departure.value, 'Dönüş: ' + returnDate.value].join('\n');
+      status.textContent = 'Bilet sorğusu hazırdır. WhatsApp düyməsinə bas.';
+      link.href = 'https://wa.me/' + C.w + '?text=' + encodeURIComponent(message);
+      link.hidden = false;
       return;
     }
     if (active) return;
