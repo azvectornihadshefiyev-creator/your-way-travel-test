@@ -243,6 +243,11 @@ h2{font-weight:800}
 #package-flight-status{font-size:.82rem;color:#e4e9ff;margin:8px 0;min-height:1.4em}
 @media(prefers-reduced-motion:reduce){.mq .mq-track,#flights .flight-summary::after,#plan .sum::after{animation:none}}
 </style>
+<style>
+#flights .flight-route .route-choice{display:grid;gap:4px;font-size:.76rem;grid-column:auto}
+#flights .flight-route .route-choice select{min-height:42px;padding:8px 10px;font-size:clamp(.76rem,1.3vw,.95rem);box-shadow:0 3px 0 #d9e0f8}
+#flights .flight-facts[hidden],#flights .flight-dates[hidden],#flights .flight-extras[hidden]{display:none}
+</style>
 </head>
 <body>
 
@@ -269,7 +274,14 @@ h2{font-weight:800}
 <div class="flight-route">
   <div><small>Gediş şəhəri</small><strong>Bakı <span>GYD</span></strong></div>
   <span class="route-arrow" aria-hidden="true">✈</span>
-  <div><small>İstiqamət</small><strong>İstanbul <span>IST / SAW</span></strong></div>
+  <label class="route-choice"><span>İstiqamət</span>
+  <select name="destination">
+    <option value="istanbul">İstanbul · IST / SAW</option>
+    <option value="antalya">Antalya · Tur paketi</option>
+    <option value="tbilisi">Tbilisi · Tur paketi</option>
+    <option value="dubai">Dubay · Tur paketi</option>
+  </select>
+</label>
 </div>
 <div class="flight-dates">
   <label><span>Gediş tarixi</span><input name="departure" type="date" required></label>
@@ -284,10 +296,10 @@ h2{font-weight:800}
   </div>
   <small>Bu seçimlər bilet qiymətini dəyişmir. Onları WhatsApp sorğusuna əlavə edirik.</small>
 </fieldset>
-<div class="flight-actions"><button type="submit">Canlı qiyməti yoxla <span aria-hidden="true">→</span></button></div>
+<div class="flight-actions"><button type="submit"><span id="flight-action-label">Canlı qiyməti yoxla</span> <span aria-hidden="true">→</span></button></div>
 </form></div>
 <aside class="panel flight-summary"><h3>Canlı bilet qiyməti</h3>
-<ul class="flight-facts" aria-label="Axtarış şərtləri"><li>↔ Gediş-dönüş</li><li>1 böyük sərnişin</li><li>Ekonom</li></ul>
+<ul id="flight-facts" class="flight-facts" aria-label="Axtarış şərtləri"><li>↔ Gediş-dönüş</li><li>1 böyük sərnişin</li><li>Ekonom</li></ul>
 <p id="flight-status" role="status" aria-live="polite">Tarixləri seçib qiyməti yoxla.</p>
 <div id="flight-result" hidden></div>
 <a class="wa" id="flight-wa" hidden target="_blank" rel="noopener">WhatsApp-da bilet soruş</a>
@@ -604,6 +616,11 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
   const description = 'Tarixləri seçib qiyməti yoxla.';
   const summary = document.querySelector('.flight-summary');
   let currentQuote;
+  const destination = form.elements.destination;
+  const actionLabel = document.querySelector('#flight-action-label');
+  const facts = document.querySelector('#flight-facts');
+  const datesSection = form.querySelector('.flight-dates');
+  const extrasSection = form.querySelector('.flight-extras');
   const departure = form.elements.departure;
   const returnDate = form.elements.returnDate;
   const baku = Date.now() + 4 * 3600000;
@@ -653,10 +670,22 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
     button.disabled = false;
     returnDate.min = departure.value || departure.min;
     result.hidden = link.hidden = true;
-    status.textContent = description;
+    const live = destination.value === 'istanbul';
+    button.formNoValidate = !live;
+    actionLabel.textContent = live ? 'Canlı qiyməti yoxla' : 'Tur paketini hesabla';
+    facts.hidden = datesSection.hidden = extrasSection.hidden = !live;
+    status.textContent = live ? description : 'Bu istiqamət üçün təxmini tur paketinə bax.';
+
   });
   form.addEventListener('submit', async event => {
     event.preventDefault();
+    if (destination.value !== 'istanbul') {
+      S.d = destination.value;
+      fix();
+      draw();
+      document.querySelector('#plan').scrollIntoView({behavior: reducePrice ? 'auto' : 'smooth'});
+      return;
+    }
     if (active) return;
     const request = new AbortController();
     active = request;
