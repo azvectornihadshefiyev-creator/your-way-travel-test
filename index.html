@@ -222,6 +222,27 @@ h2{font-weight:800}
 @media(max-width:480px){.flight-dates{grid-template-columns:1fr}.flight-route{gap:7px;padding:12px}}
 @media(prefers-reduced-motion:reduce){#flights .flight-summary.is-searching #flight-status::before{animation:none}.flight-options button,.flight-options label span{transition:none}}
 </style>
+<style>
+
+.mq{position:relative;padding:13px 0;background:linear-gradient(100deg,#181b48,#292b67,#181b48)}
+.mq .mq-track{display:flex;width:max-content;animation:city-loop 28s linear infinite;will-change:transform}
+.mq .mq-group{display:flex;flex:none;align-items:center;justify-content:space-around;min-width:100vw;animation:none}
+.mq .mq-group span{display:inline-flex;align-items:center;gap:16px;margin:0;padding:7px 18px;color:#eef1ff;-webkit-text-stroke:0;font-size:clamp(15px,2vw,23px);letter-spacing:.045em}
+.mq b{font-size:.65em;color:#f5d77c}
+.mq::before,.mq::after{content:"";position:absolute;z-index:1;inset:0 auto 0 0;width:clamp(15px,6vw,100px);background:linear-gradient(90deg,#181b48,transparent);pointer-events:none}
+.mq::after{left:auto;right:0;transform:scaleX(-1)}
+@keyframes city-loop{to{transform:translateX(-50%)}}
+#flights .flight-summary,#plan .sum{position:relative;isolation:isolate;overflow:hidden}
+#flights .flight-summary::after,#plan .sum::after{content:"";position:absolute;inset:0 auto 0 -35%;width:28%;z-index:-1;pointer-events:none;background:linear-gradient(110deg,transparent,#e3e9ff38,transparent);transform:skewX(-20deg);animation:quote-shine 11s ease-in-out infinite}
+#plan .sum::after{animation-delay:2s}
+@keyframes quote-shine{0%,62%{transform:translateX(0) skewX(-20deg)}82%,100%{transform:translateX(550%) skewX(-20deg)}}
+.package-flight-controls{margin:12px 0 10px}
+#package-live{min-height:42px;padding:8px 15px;border:1px solid #bac5ff88;border-radius:11px;background:#ffffff18;color:#fff;font:inherit;font-weight:700;box-shadow:0 3px 0 #11164180;cursor:pointer}
+#package-live:active:not(:disabled){transform:translateY(2px)}
+#package-live:disabled{opacity:.55;cursor:default}
+#package-flight-status{font-size:.82rem;color:#e4e9ff;margin:8px 0;min-height:1.4em}
+@media(prefers-reduced-motion:reduce){.mq .mq-track,#flights .flight-summary::after,#plan .sum::after{animation:none}}
+</style>
 </head>
 <body>
 
@@ -239,7 +260,7 @@ h2{font-weight:800}
 <canvas id="gl" aria-hidden="true"></canvas>
 <span class="hint" aria-hidden="true">↔ Qlobusu sürüşdür</span>
 </div><span class="cue"></span></header>
-<div class="mq"><div><span>DUBAY <em>✦</em></span><span>İSTANBUL <em>✦</em></span><span>ANTALYA <em>✦</em></span><span>TBİLİSİ <em>✦</em></span><span>MALDİV <em>✦</em></span><span>DUBAY <em>✦</em></span><span>İSTANBUL <em>✦</em></span><span>ANTALYA <em>✦</em></span><span>TBİLİSİ <em>✦</em></span><span>MALDİV <em>✦</em></span></div></div>
+<div class="mq"><div class="mq-track"><div class="mq-group"><span>Bakı<b aria-hidden="true">✦</b></span><span>İstanbul<b aria-hidden="true">✦</b></span><span>Antalya<b aria-hidden="true">✦</b></span><span>Tbilisi<b aria-hidden="true">✦</b></span><span>Dubay<b aria-hidden="true">✦</b></span><span>Maldiv<b aria-hidden="true">✦</b></span></div><div class="mq-group" aria-hidden="true"><span>Bakı<b aria-hidden="true">✦</b></span><span>İstanbul<b aria-hidden="true">✦</b></span><span>Antalya<b aria-hidden="true">✦</b></span><span>Tbilisi<b aria-hidden="true">✦</b></span><span>Dubay<b aria-hidden="true">✦</b></span><span>Maldiv<b aria-hidden="true">✦</b></span></div></div></div>
 
 <section id="flights">
 <h2>Bakıdan <span class="serif" style="color:var(--s)">aviabilet axtar</span></h2>
@@ -254,14 +275,6 @@ h2{font-weight:800}
   <label><span>Gediş tarixi</span><input name="departure" type="date" required></label>
   <label><span>Dönüş tarixi</span><input name="returnDate" type="date" required></label>
 </div>
-<div class="flight-shortcuts" aria-label="Gediş tarixindən sonra dönüşü seç">
-  <span>Səfər müddəti</span>
-  <div class="flight-options">
-    <button type="button" data-nights="3" aria-pressed="false">3 gecə</button>
-    <button type="button" data-nights="5" aria-pressed="false">5 gecə</button>
-    <button type="button" data-nights="7" aria-pressed="false">7 gecə</button>
-  </div>
-</div>
 <fieldset class="flight-extras">
   <legend>Bilet sorğusuna əlavə et</legend>
   <div class="flight-options">
@@ -269,7 +282,7 @@ h2{font-weight:800}
     <label><input type="checkbox" name="requestExtra" value="Oturacaq seçimi"><span>Oturacaq seçimi</span></label>
     <label><input type="checkbox" name="requestExtra" value="Dəyişdirilə bilən tarif"><span>Dəyişdirilə bilən tarif</span></label>
   </div>
-  <small>Əlavələr WhatsApp sorğusuna düşür və qiymətləri ayrıca dəqiqləşdirilir.</small>
+  <small>Bu seçimlər bilet qiymətini dəyişmir. Onları WhatsApp sorğusuna əlavə edirik.</small>
 </fieldset>
 <div class="flight-actions"><button type="submit">Canlı qiyməti yoxla <span aria-hidden="true">→</span></button></div>
 </form></div>
@@ -283,7 +296,7 @@ h2{font-weight:800}
 
 <section id="plan">
 <h2 class="rv">Səyahətini <span class="serif" style="color:var(--s)">özün qur</span></h2>
-<p class="lead rv">Uçuş, otel, qidalanma və transfer üçün təxmini büdcəni hesabla. Yekun təklif WhatsApp-da dəqiqləşdirilir.</p>
+<p class="lead rv">Otel, qidalanma, transfer və əlavələri seç. Bakı–İstanbul üçün paketə canlı bilet qiyməti əlavə edə bilərsən.</p>
 <div class="wrap">
 <div class="panel rv">
 <div class="step"><h3>1 · İstiqamət</h3><div class="chips" id="g-d"></div></div>
@@ -297,10 +310,14 @@ h2{font-weight:800}
 <div class="step"><h3>6 · Əlavələr</h3><div class="chips" id="g-x"></div></div>
 </div>
 <aside class="panel sum rv">
-<h3>Təxmini qiymət</h3>
+<h3>Təxmini paket qiyməti</h3>
+<div class="package-flight-controls">
+  <button type="button" id="package-live">Canlı uçuş qiymətini yoxla</button>
+  <p id="package-flight-status" role="status"></p>
+</div>
 <div class="big" id="tot">0 ₼</div>
 <div id="lines"></div>
-<a class="wa" id="wa" href="#" target="_blank" rel="noopener">WhatsApp-da sifariş ver</a>
+<a class="wa" id="wa" href="#" target="_blank" rel="noopener">WhatsApp-da paket təklifi al</a>
 <p class="note">Sifariş üçün WhatsApp vasitəsilə bizimlə əlaqə saxlayın. Vebsayt daxilində sifariş qəbul edilmir. Qiymətlər dəyişə bilər, yerlər dolmuş ola bilər, tez əlaqə saxlayın.</p>
 </aside>
 </div>
@@ -321,6 +338,16 @@ h2{font-weight:800}
 
 <script>
 const $=s=>document.querySelector(s);
+const flightEndpoint="https://your-way-azal-test.azvectornihadshefiyev.workers.dev/api/azal";
+async function requestFlightQuote(departure,returnDate,signal){
+  const query=new URLSearchParams({destination:"IST",adults:"1",departure,returnDate});
+  const response=await fetch(flightEndpoint+"?"+query,{signal}).catch(()=>{throw new Error("Qiyməti hazırda yoxlaya bilmədik.")});
+  if(!response.ok)throw new Error(response.status===429?"Bir dəqiqə sonra yenidən yoxla.":"Qiyməti hazırda yoxlaya bilmədik.");
+  const quote=await response.json().catch(()=>null);
+  if(quote?.currency!=="AZN"||!Number.isFinite(quote.customerTotal)||quote.customerTotal<=0||
+    quote.departure!==departure||quote.returnDate!==returnDate)throw new Error("Qiyməti hazırda yoxlaya bilmədik.");
+  return quote;
+}
 const C={w:"994703703390",api:"",c:"₼",
 d:{
 dubai:{n:"Dubay",s:"Müasir şəhər",f:420,g:95,b:"linear-gradient(135deg,#0ea5e9,#7c3aed)",o:{t:["vip"]}},
@@ -348,18 +375,67 @@ function fix(){[["m",C.m],["t",C.t]].forEach(([g,o])=>{if(off(g,S[g]))S[g]=Objec
 function draw(){
 chips("#g-d","d",C.d,"dest");chips("#g-h","h",C.h);chips("#g-m","m",C.m);chips("#g-t","t",C.t);chips("#g-x","x",C.x);
 $("#vn").textContent=S.n;$("#vp").textContent=S.p;calc()}
-let shown=0;
+let shown=0, packageFrame, packageRequest, packageQuote, packageError="";
+const packageButton=$("#package-live"), packageStatus=$("#package-flight-status");
+const packageMoney=new Intl.NumberFormat("az-AZ",{maximumFractionDigits:2});
+function packageDates(){
+  if(!S.date)return null;
+  const end=new Date(S.date+"T00:00:00Z");
+  if(!Number.isFinite(+end))return null;
+  end.setUTCDate(end.getUTCDate()+S.n);
+  return {departure:S.date,returnDate:end.toISOString().slice(0,10)};
+}
+function packageKey(){
+  return [S.d,S.p,S.date,S.n].join("|");
+}
 function calc(){
+const key=packageKey(),dates=packageDates();
+if(packageRequest&&packageRequest.key!==key){packageRequest.controller.abort();packageRequest=undefined}
+if(packageQuote&&packageQuote.key!==key)packageQuote=undefined;
+if(packageError&&packageError.key!==key)packageError="";
 const d=C.d[S.d],p=S.p,n=S.n,r=Math.ceil(p/2);
-const fl=d.f*p,ht=Math.round(d.g*C.h[S.h].m*n*r),ml=C.m[S.m].v*n*p,tr=S.t==="group"?20*p:S.t==="vip"?50*Math.ceil(p/3):0;
+const today=new Date(Date.now()+4*3600000).toISOString().slice(0,10);
+const latest=new Date(Date.now()+4*3600000+180*86400000).toISOString().slice(0,10);
+const available=S.d==="istanbul"&&p===1&&dates&&dates.departure>=today&&dates.returnDate<=latest;
+packageButton.disabled=!available||!!packageRequest;
+packageStatus.textContent=packageRequest?"Uçuşlar yoxlanılır…":packageQuote?"Uçuş qiyməti canlı yoxlanılıb. Otel və digər xidmətlər təxminidir.":packageError?packageError.text:
+  S.d!=="istanbul"||p!==1?"Canlı uçuş qiyməti Bakı–İstanbul üzrə 1 böyük sərnişin üçün mövcuddur.":!available?"Növbəti 180 gün ərzində uyğun tarix seç.":"Tarixlərə uyğun uçuş qiymətini paketə əlavə et.";
+const fl=packageQuote?.amount??d.f*p,ht=Math.round(d.g*C.h[S.h].m*n*r),ml=C.m[S.m].v*n*p,tr=S.t==="group"?20*p:S.t==="vip"?50*Math.ceil(p/3):0;
 let ex=0;S.x.forEach(k=>ex+=C.x[k].v*p);
-const L=[["Uçuş × "+p,fl],["Otel "+C.h[S.h].l+" · "+n+" gecə",ht],["Qidalanma",ml],["Transfer",tr],["Əlavələr",ex]];
-const tot=fl+ht+ml+tr+ex;
-$("#lines").innerHTML=L.filter(x=>x[1]>0).map(x=>`<div class="ln"><span>${x[0]}</span><span>${x[1]} ${C.c}</span></div>`).join("");
-const from=shown;shown=tot;const t0=performance.now();
-(function a(t){const k=Math.min(1,(t-t0)/600),v=Math.round(from+(tot-from)*(1-Math.pow(1-k,3)));$("#tot").textContent=v+" "+C.c;if(k<1)requestAnimationFrame(a)})(t0);
-window.buildMsg=c=>`Salam! Your Way Travel üçün sorğu (${c}):\n📍 ${d.n}\n📅 ${S.date||"tarix seçilməyib"}, ${n} gecə, ${p} nəfər\n🏨 ${C.h[S.h].l}\n🍽 ${C.m[S.m].l}\n🚐 ${C.t[S.t].l}\n➕ ${[...S.x].map(k=>C.x[k].l).join(", ")||"yoxdur"}\n💰 Təxmini: ${tot} ${C.c}`;
-$("#wa").href="https://wa.me/"+C.w+"?text="+encodeURIComponent(buildMsg("YW-0000"))}
+const L=[[packageQuote?"Uçuş · canlı qiymət":"Uçuş · təxmini",fl],["Otel "+C.h[S.h].l+" · "+n+" gecə",ht],["Qidalanma",ml],["Transfer",tr],["Əlavələr",ex]];
+const tot=Math.round((fl+ht+ml+tr+ex)*100)/100;
+$("#lines").innerHTML=L.filter(x=>x[1]>0).map(x=>`<div class="ln"><span>${x[0]}</span><span>${packageMoney.format(x[1])} ${C.c}</span></div>`).join("");
+cancelAnimationFrame(packageFrame);
+const from=shown,t0=performance.now(),reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
+function animatePackage(t){
+  const k=reduced?1:Math.max(0,Math.min(1,(t-t0)/600));
+  shown=from+(tot-from)*(1-Math.pow(1-k,3));
+  $("#tot").textContent=packageMoney.format(shown)+" "+C.c;
+  if(k<1)packageFrame=requestAnimationFrame(animatePackage);
+}
+animatePackage(t0);
+window.buildMsg=c=>`Salam! Your Way Travel üçün paket sorğusu (${c}):\n📍 ${d.n}\n📅 ${dates?dates.departure+" — "+dates.returnDate:"Tarix seçilməyib"}, ${n} gecə, ${p} nəfər\n🏨 ${C.h[S.h].l}\n🍽 ${C.m[S.m].l}\n🚐 ${C.t[S.t].l}\n➕ ${[...S.x].map(k=>C.x[k].l).join(", ")||"yoxdur"}\n✈️ Uçuş (${packageQuote?"canlı":"təxmini"}): ${packageMoney.format(fl)} ${C.c}\n💰 Təxmini paket: ${packageMoney.format(tot)} ${C.c}`;
+$("#wa").href="https://wa.me/"+C.w+"?text="+encodeURIComponent(buildMsg("YW-0000"))
+}
+packageButton.addEventListener("click",async()=>{
+  const dates=packageDates();
+  if(packageButton.disabled||!dates)return;
+  const pending={key:packageKey(),controller:new AbortController()};
+  packageRequest=pending;
+  packageError="";
+  packageQuote=undefined;
+  calc();
+  const timer=setTimeout(()=>pending.controller.abort(),65000);
+  try{
+    const quote=await requestFlightQuote(dates.departure,dates.returnDate,pending.controller.signal);
+    if(packageRequest===pending)packageQuote={key:pending.key,amount:quote.customerTotal};
+  }catch(error){
+    if(packageRequest===pending)packageError={key:pending.key,text:error.name==="AbortError"?"Qiyməti hazırda yoxlaya bilmədik.":error.message};
+  }finally{
+    clearTimeout(timer);
+    if(packageRequest===pending){packageRequest=undefined;calc()}
+  }
+});
 $("#wa").addEventListener("click",()=>{const c="YW-"+Math.floor(1000+Math.random()*9000),m=buildMsg(c);$("#wa").href="https://wa.me/"+C.w+"?text="+encodeURIComponent(m);if(C.api)fetch(C.api,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:c,text:m}),keepalive:true}).catch(()=>{})});
 document.querySelectorAll(".ctl button").forEach(b=>b.onclick=()=>{const k=b.dataset.k;S[k]=Math.max(1,Math.min(k==="n"?30:12,S[k]+ +b.dataset.v));draw()});
 const dt=$("#date"),td=new Date();td.setDate(td.getDate()+14);dt.value=S.date=td.toISOString().slice(0,10);
@@ -525,10 +601,8 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
   const result = document.querySelector('#flight-result');
   const link = document.querySelector('#flight-wa');
   const button = form.querySelector('button[type="submit"]');
-  const endpoint = 'https://your-way-azal-test.azvectornihadshefiyev.workers.dev/api/azal';
   const description = 'Tarixləri seçib qiyməti yoxla.';
   const summary = document.querySelector('.flight-summary');
-  const shortcuts = [...form.querySelectorAll('[data-nights]')];
   let currentQuote;
   const departure = form.elements.departure;
   const returnDate = form.elements.returnDate;
@@ -566,30 +640,11 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
     link.href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(message);
     link.hidden = false;
   }
-  for (const shortcut of shortcuts) {
-    shortcut.addEventListener('click', () => {
-      if (!departure.value || !departure.checkValidity()) {
-        departure.reportValidity();
-        return;
-      }
-      const end = new Date(departure.value + 'T00:00:00Z');
-      end.setUTCDate(end.getUTCDate() + Number(shortcut.dataset.nights));
-      const next = end.toISOString().slice(0,10);
-      if (next > returnDate.max) {
-        status.textContent = 'Bu müddət üçün daha erkən gediş tarixi seç.';
-        return;
-      }
-      returnDate.value = next;
-      returnDate.dispatchEvent(new Event('input', { bubbles: true }));
-      shortcut.setAttribute('aria-pressed', 'true');
-    });
-  }
   form.addEventListener('input', event => {
     if (event.target.name === 'requestExtra') {
       updateWhatsApp();
       return;
     }
-    for (const shortcut of shortcuts) shortcut.setAttribute('aria-pressed', 'false');
     currentQuote = undefined;
     summary.classList.remove('is-searching');
     active?.abort();
@@ -612,17 +667,8 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
     status.textContent = 'Uçuşlar yoxlanılır…';
     const timer = setTimeout(() => request.abort(), 65000);
     try {
-      const query = new URLSearchParams({ destination: 'IST', adults: '1', departure: departure.value, returnDate: returnDate.value });
-      const response = await fetch(endpoint + '?' + query, { signal: request.signal });
-      const quote = await response.json();
+      const quote = await requestFlightQuote(departure.value,returnDate.value,request.signal);
       if (active !== request) return;
-      if (!response.ok) {
-        status.textContent = response.status === 429 ? 'Bir dəqiqə sonra yenidən yoxla.' : 'Qiyməti hazırda yoxlaya bilmədik.';
-        return;
-      }
-      if (quote.currency !== 'AZN' || !Number.isFinite(quote.customerTotal)) {
-        throw new Error('Invalid quote');
-      }
       const price = document.createElement('strong');
       price.className = 'flight-price';
       animatePrice(price, quote.customerTotal);
@@ -633,8 +679,8 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
       result.hidden = false;
       currentQuote = quote;
       updateWhatsApp();
-    } catch {
-      if (active === request) status.textContent = 'Qiyməti hazırda yoxlaya bilmədik.';
+    } catch (error) {
+      if (active === request) status.textContent = error.name === 'AbortError' ? 'Qiyməti hazırda yoxlaya bilmədik.' : error.message;
     } finally {
       clearTimeout(timer);
       if (active === request) {
