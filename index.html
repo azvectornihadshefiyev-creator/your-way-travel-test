@@ -707,7 +707,8 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
     calendar.hidden = false;
     calendar.parentElement.classList.add('has-picker');
     calendar.setAttribute('aria-expanded', 'false');
-    const monthFormat = new Intl.DateTimeFormat('az-AZ', {month:'long',year:'numeric',timeZone:'UTC'});
+    const monthNames = ['yanvar','fevral','mart','aprel','may','iyun','iyul','avqust','sentyabr','oktyabr','noyabr','dekabr'];
+    const monthLabel = date => monthNames[date.getUTCMonth()] + ' ' + date.getUTCFullYear();
     const iso = date => date.toISOString().slice(0,10);
     let month;
     function close() {
@@ -718,7 +719,7 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
       const row = document.createElement('div');
       row.className = 'flight-picker-header';
       const title = document.createElement('strong');
-      title.textContent = monthFormat.format(month);
+      title.textContent = monthLabel(month);
       function arrow(step, text, label) {
         const button = document.createElement('button');
         button.type = 'button';
@@ -746,7 +747,7 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
         const value=iso(new Date(Date.UTC(month.getUTCFullYear(),month.getUTCMonth(),day)));
         button.type='button';
         button.textContent=String(day);
-        button.setAttribute('aria-label',day+' '+monthFormat.format(month));
+        button.setAttribute('aria-label',day+' '+monthLabel(month));
         button.disabled=value<input.min||value>input.max;
         button.setAttribute('aria-pressed',String(value===input.value));
         button.onclick=()=>{
@@ -768,8 +769,11 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
       panel.hidden=false;
       calendar.setAttribute('aria-expanded','true');
     });
+    input.addEventListener('click', () => {
+      if(panel.hidden) calendar.click();
+    });
     document.addEventListener('click',event=>{
-      if(!calendar.parentElement.contains(event.target))close();
+      if(!event.composedPath().includes(calendar.parentElement))close();
     });
     panel.addEventListener('keydown',event=>{
       if(event.key==='Escape'){close();calendar.focus();}
