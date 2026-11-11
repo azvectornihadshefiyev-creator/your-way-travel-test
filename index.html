@@ -248,6 +248,38 @@ h2{font-weight:800}
 #flights .flight-route .route-choice select{min-height:42px;padding:8px 10px;font-size:clamp(.76rem,1.3vw,.95rem);box-shadow:0 3px 0 #d9e0f8}
 #flights .flight-facts[hidden],#flights .flight-dates[hidden],#flights .flight-extras[hidden]{display:none}
 </style>
+<style>
+
+#flights,#flights .serif,#plan,#plan .serif,#flights input,#flights select,#flights button,#plan button{font-family:"Segoe UI",Arial,sans-serif}
+#flights .flight-date-field{min-width:0}
+#flights .flight-date-field>label{display:block;margin-bottom:7px}
+#flights .flight-date-control{position:relative;min-width:0}
+#flights .flight-date-control input{display:block}
+#flights .flight-date-control.has-picker input{padding-right:56px}
+#flights .flight-date-control.has-picker input::-webkit-calendar-picker-indicator{opacity:0;pointer-events:none}
+.flight-calendar{position:absolute;right:5px;top:5px;bottom:5px;min-width:44px;display:grid;place-items:center;border:1px solid #d5ddf8;border-radius:10px;color:#342ba3;background:#edf0ff;cursor:pointer}
+.flight-calendar[hidden]{display:none}
+.flight-calendar span{position:relative;width:17px;height:15px;border:2px solid currentColor;border-radius:3px}
+.flight-calendar span::before{content:"";position:absolute;inset:3px 0 auto;border-top:2px solid currentColor}
+.flight-calendar span::after{content:"";position:absolute;top:-4px;left:3px;width:2px;height:4px;background:currentColor;box-shadow:5px 0 currentColor}
+.flight-calendar:hover{background:#dedfff}
+.flight-calendar:focus-visible{outline:2px solid #5148cb;outline-offset:2px}
+.order-mascot{position:fixed;right:clamp(10px,4vw,72px);bottom:clamp(84px,15vh,150px);width:clamp(130px,18vw,220px);height:clamp(166px,23vw,260px);z-index:28;pointer-events:none;visibility:hidden;perspective:700px}
+.order-mascot.is-playing{visibility:visible;animation:order-arrival 3.6s both}
+.order-bubble{position:absolute;top:0;left:0;z-index:4;padding:9px 15px;border-radius:15px 15px 3px 15px;color:#163d2b;background:#f3fff8;box-shadow:0 7px 18px #15283d55;font-weight:800;font-size:clamp(13px,1.6vw,20px);white-space:nowrap}
+.order-person{position:absolute;inset:14% 4% 0 12%;filter:drop-shadow(0 12px 13px #10193666)}
+.order-head{position:absolute;z-index:2;top:4%;left:20%;width:48%;height:47%;border-radius:48% 48% 46% 46%;background:radial-gradient(circle at 29% 42%,#ffcfaa,transparent 52%),linear-gradient(135deg,#ffd2ac,#bf704c);box-shadow:inset -6px -5px 11px #8b452c33}
+.order-head::before{content:"";position:absolute;top:-9%;left:-2%;width:101%;height:45%;border-radius:55% 55% 36% 18%;background:linear-gradient(150deg,#594135,#251e28);transform:rotate(-7deg)}
+.order-head i{position:absolute;top:46%;left:28%;width:8%;height:11%;border-radius:50%;background:#342128;box-shadow:.95em 0 #342128}
+.order-head b{position:absolute;top:65%;left:35%;width:35%;height:16%;border-radius:10% 10% 60% 60%;background:#8e3e3d;border-top:4px solid #fff1df}
+.order-jacket{position:absolute;left:9%;top:48%;width:68%;height:50%;border-radius:42% 42% 20% 20%;background:linear-gradient(120deg,#7b8cff,#4038ac 65%,#222460);box-shadow:inset 4px 5px 10px #c6c9ff66}
+.order-jacket::after{content:"";position:absolute;top:0;left:38%;width:24%;height:39%;background:#f6f5ff;clip-path:polygon(0 0,100% 0,50% 100%)}
+.order-hand{position:absolute;z-index:3;top:59%;right:9%;width:26%;height:13%;border-radius:99px;background:linear-gradient(#f9ba91,#ba7452);transform:rotate(-30deg)}
+.order-phone{position:absolute;z-index:4;top:32%;right:1%;width:27%;height:37%;display:grid;place-items:center;border:3px solid #2d314e;border-radius:10px;background:linear-gradient(160deg,#f4fff8,#b9efd7);box-shadow:4px 4px 0 #151b3d;transform:rotate(12deg)}
+.order-whatsapp{display:grid;place-items:center;width:73%;aspect-ratio:1;border-radius:50% 50% 50% 18%;background:#168c58;color:white;font-size:clamp(12px,2vw,23px);line-height:1}
+@keyframes order-arrival{0%{opacity:0;transform:translateX(155%) rotateY(-48deg) scale(.77)}20%,73%{opacity:1;transform:translateX(0) rotateY(0) scale(1)}100%{opacity:0;transform:translateX(155%) rotateY(48deg) scale(.77)}}
+@media(prefers-reduced-motion:reduce){.order-mascot.is-playing{animation:none;visibility:hidden}}
+</style>
 </head>
 <body>
 
@@ -284,8 +316,18 @@ h2{font-weight:800}
 </label>
 </div>
 <div class="flight-dates">
-  <label><span>Gediş tarixi</span><input name="departure" type="date" required></label>
-  <label><span>Dönüş tarixi</span><input name="returnDate" type="date" required></label>
+  <div class="flight-date-field">
+  <label for="flight-departure">Gediş tarixi</label>
+  <div class="flight-date-control"><input id="flight-departure" name="departure" type="date" required>
+    <button type="button" class="flight-calendar" data-calendar="departure" aria-label="Gediş tarixi üçün təqvimi aç" hidden><span aria-hidden="true"></span></button>
+  </div>
+</div>
+  <div class="flight-date-field">
+  <label for="flight-returnDate">Dönüş tarixi</label>
+  <div class="flight-date-control"><input id="flight-returnDate" name="returnDate" type="date" required>
+    <button type="button" class="flight-calendar" data-calendar="returnDate" aria-label="Dönüş tarixi üçün təqvimi aç" hidden><span aria-hidden="true"></span></button>
+  </div>
+</div>
 </div>
 <fieldset class="flight-extras">
   <legend>Bilet sorğusuna əlavə et</legend>
@@ -302,8 +344,17 @@ h2{font-weight:800}
 <ul id="flight-facts" class="flight-facts" aria-label="Axtarış şərtləri"><li>↔ Gediş-dönüş</li><li>1 böyük sərnişin</li><li>Ekonom</li></ul>
 <p id="flight-status" role="status" aria-live="polite">Tarixləri seçib qiyməti yoxla.</p>
 <div id="flight-result" hidden></div>
-<a class="wa" id="flight-wa" hidden target="_blank" rel="noopener">WhatsApp-da bilet soruş</a>
+<a class="wa" id="flight-wa" hidden target="_blank" rel="noopener">WhatsApp-dan sifariş ver</a>
 </aside></div>
+<div id="order-mascot" class="order-mascot" aria-hidden="true">
+  <span class="order-bubble">İndi sifariş et</span>
+  <div class="order-person">
+    <div class="order-head"><i></i><b></b></div>
+    <div class="order-jacket"></div>
+    <div class="order-hand"></div>
+    <div class="order-phone"><span class="order-whatsapp">☎</span></div>
+  </div>
+</div>
 </section>
 
 <section id="plan">
@@ -619,7 +670,6 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
   const destination = form.elements.destination;
   const actionLabel = document.querySelector('#flight-action-label');
   const facts = document.querySelector('#flight-facts');
-  const datesSection = form.querySelector('.flight-dates');
   const extrasSection = form.querySelector('.flight-extras');
   const departure = form.elements.departure;
   const returnDate = form.elements.returnDate;
@@ -630,6 +680,24 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
   let active;
   let priceAnimation;
   const reducePrice = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const mascot = document.querySelector('#order-mascot');
+  mascot.addEventListener('animationend', () => mascot.classList.remove('is-playing'));
+  function showOrderMascot() {
+    if (reducePrice || link.hidden) return;
+    mascot.classList.remove('is-playing');
+    void mascot.offsetWidth;
+    mascot.classList.add('is-playing');
+  }
+  for (const calendar of form.querySelectorAll('[data-calendar]')) {
+    const input = form.elements[calendar.dataset.calendar];
+    if (typeof input.showPicker !== 'function') continue;
+    calendar.hidden = false;
+    calendar.parentElement.classList.add('has-picker');
+    calendar.addEventListener('click', () => {
+      try { input.showPicker(); }
+      catch { input.focus(); }
+    });
+  }
   function animatePrice(element, amount) {
     cancelAnimationFrame(priceAnimation);
     if (reducePrice) {
@@ -642,6 +710,7 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
       const progress = Math.max(0, Math.min(1, (now - started) / 1050));
       element.textContent = money(amount * (1 - (1 - progress) ** 3));
       if (progress < 1) priceAnimation = requestAnimationFrame(frame);
+      else showOrderMascot();
     }
     priceAnimation = requestAnimationFrame(frame);
   }
@@ -663,6 +732,7 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
       return;
     }
     currentQuote = undefined;
+    mascot.classList.remove('is-playing');
     summary.classList.remove('is-searching');
     active?.abort();
     cancelAnimationFrame(priceAnimation);
@@ -673,7 +743,7 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
     const live = destination.value === 'istanbul';
     button.formNoValidate = !live;
     actionLabel.textContent = live ? 'Canlı qiyməti yoxla' : 'Tur paketini hesabla';
-    facts.hidden = datesSection.hidden = extrasSection.hidden = !live;
+    facts.hidden = extrasSection.hidden = !live;
     status.textContent = live ? description : 'Bu istiqamət üçün təxmini tur paketinə bax.';
 
   });
@@ -681,6 +751,12 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
     event.preventDefault();
     if (destination.value !== 'istanbul') {
       S.d = destination.value;
+      if (departure.value && departure.checkValidity()) {
+        S.date = departure.value;
+        document.querySelector('#date').value = S.date;
+        const nights = (Date.parse(returnDate.value) - Date.parse(departure.value)) / 86400000;
+        if (Number.isInteger(nights) && nights >= 1 && nights <= 30) S.n = nights;
+      }
       fix();
       draw();
       document.querySelector('#plan').scrollIntoView({behavior: reducePrice ? 'auto' : 'smooth'});
@@ -692,6 +768,7 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
     button.disabled = true;
     result.hidden = link.hidden = true;
     currentQuote = undefined;
+    mascot.classList.remove('is-playing');
     summary.classList.add('is-searching');
     status.textContent = 'Uçuşlar yoxlanılır…';
     const timer = setTimeout(() => request.abort(), 65000);
