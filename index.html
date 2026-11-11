@@ -310,21 +310,10 @@ h2{font-weight:800}
 <div class="mq"><div class="mq-track"><div class="mq-group"><span>Bakı<b aria-hidden="true">✦</b></span><span>İstanbul<b aria-hidden="true">✦</b></span><span>Antalya<b aria-hidden="true">✦</b></span><span>Tbilisi<b aria-hidden="true">✦</b></span><span>Dubay<b aria-hidden="true">✦</b></span><span>Maldiv<b aria-hidden="true">✦</b></span></div><div class="mq-group" aria-hidden="true"><span>Bakı<b aria-hidden="true">✦</b></span><span>İstanbul<b aria-hidden="true">✦</b></span><span>Antalya<b aria-hidden="true">✦</b></span><span>Tbilisi<b aria-hidden="true">✦</b></span><span>Dubay<b aria-hidden="true">✦</b></span><span>Maldiv<b aria-hidden="true">✦</b></span></div></div></div>
 
 <section id="flights">
-<h2>Bakıdan <span class="serif" style="color:var(--s)">aviabilet axtar</span></h2>
+<h2><span class="serif" style="color:var(--s)">Aviabilet</span> axtar</h2>
 <div class="flight-layout"><div class="panel flight-panel">
 <form id="flight-form" class="flight-form">
-<div class="flight-route">
-  <div><small>Gediş şəhəri</small><strong>Bakı <span>GYD</span></strong></div>
-  <span class="route-arrow" aria-hidden="true">✈</span>
-  <label class="route-choice"><span>İstiqamət</span>
-  <select name="destination">
-    <option value="istanbul">İstanbul · IST / SAW</option>
-    <option value="antalya">Antalya</option>
-    <option value="tbilisi">Tbilisi</option>
-    <option value="dubai">Dubay</option>
-  </select>
-</label>
-</div>
+<div class="flight-route"><label class="route-choice"><span>Gediş şəhəri</span><select name="origin"><option value="GYD" selected>Bakı</option><option value="IST">İstanbul</option><option value="AYT">Antalya</option><option value="TBS">Tbilisi</option><option value="DXB">Dubay</option></select></label><span class="route-arrow" aria-hidden="true">✈</span><label class="route-choice"><span>İstiqamət</span><select name="destination"><option value="GYD" hidden disabled>Bakı</option><option value="IST" selected>İstanbul</option><option value="AYT">Antalya</option><option value="TBS">Tbilisi</option><option value="DXB">Dubay</option></select></label></div>
 <div class="flight-dates">
   <div class="flight-date-field">
   <label for="flight-departure">Gediş tarixi</label>
@@ -369,7 +358,7 @@ h2{font-weight:800}
 
 <section id="plan">
 <h2 class="rv">Səyahətini <span class="serif" style="color:var(--s)">özün qur</span></h2>
-<p class="lead rv">Otel, qidalanma, transfer və əlavələri seç. Bakı–İstanbul üçün paketə canlı bilet qiyməti əlavə edə bilərsən.</p>
+<p class="lead rv">Otel, qidalanma, transfer və əlavələri seç. Dəstəklənən şəhərlər üçün paketə canlı bilet qiyməti əlavə edə bilərsən.</p>
 <div class="wrap">
 <div class="panel rv">
 <div class="step"><h3>1 · İstiqamət</h3><div class="chips" id="g-d"></div></div>
@@ -412,13 +401,22 @@ h2{font-weight:800}
 <script>
 const $=s=>document.querySelector(s);
 const flightEndpoint="https://your-way-azal-test.azvectornihadshefiyev.workers.dev/api/azal";
-async function requestFlightQuote(departure,returnDate,signal){
-  const query=new URLSearchParams({destination:"IST",adults:"1",departure,returnDate});
+const routeCities={GYD:"Bakı",IST:"İstanbul",TBS:"Tbilisi",DXB:"Dubay",AYT:"Antalya"};
+const packageDestinations={istanbul:"IST",tbilisi:"TBS",dubai:"DXB",antalya:"AYT"};
+const recentFlightQuotes=new Map();
+async function requestFlightQuote(departure,returnDate,signal,origin="GYD",destination="IST"){
+  const query=new URLSearchParams({origin,destination,adults:"1",departure,returnDate});
+  const key=query.toString(),cached=recentFlightQuotes.get(key);
+  if(cached&&cached.expires>Date.now())return cached.quote;
+  recentFlightQuotes.delete(key);
   const response=await fetch(flightEndpoint+"?"+query,{signal}).catch(()=>{throw new Error("Qiyməti hazırda yoxlaya bilmədik.")});
   if(!response.ok)throw new Error(response.status===429?"Bir dəqiqə sonra yenidən yoxla.":"Qiyməti hazırda yoxlaya bilmədik.");
   const quote=await response.json().catch(()=>null);
   if(quote?.currency!=="AZN"||!Number.isFinite(quote.customerTotal)||quote.customerTotal<=0||
-    quote.departure!==departure||quote.returnDate!==returnDate)throw new Error("Qiyməti hazırda yoxlaya bilmədik.");
+    quote.departure!==departure||quote.returnDate!==returnDate||
+    quote.originCode!==origin||quote.destinationCode!==destination)throw new Error("Qiyməti hazırda yoxlaya bilmədik.");
+  const expires=Date.parse(quote.checkedAt)+90000;
+  if(expires>Date.now())recentFlightQuotes.set(key,{quote,expires});
   return quote;
 }
 const C={w:"994703703390",api:"",c:"₼",
@@ -469,10 +467,10 @@ if(packageError&&packageError.key!==key)packageError="";
 const d=C.d[S.d],p=S.p,n=S.n,r=Math.ceil(p/2);
 const today=new Date(Date.now()+4*3600000).toISOString().slice(0,10);
 const latest=new Date(Date.now()+4*3600000+180*86400000).toISOString().slice(0,10);
-const available=S.d==="istanbul"&&p===1&&dates&&dates.departure>=today&&dates.returnDate<=latest;
+const available=packageDestinations[S.d]&&p===1&&dates&&dates.departure>=today&&dates.returnDate<=latest;
 packageButton.disabled=!available||!!packageRequest;
 packageStatus.textContent=packageRequest?"Uçuşlar yoxlanılır…":packageQuote?"Uçuş qiyməti canlı yoxlanılıb. Otel və digər xidmətlər təxminidir.":packageError?packageError.text:
-  S.d!=="istanbul"||p!==1?"Canlı uçuş qiyməti Bakı–İstanbul üzrə 1 böyük sərnişin üçün mövcuddur.":!available?"Növbəti 180 gün ərzində uyğun tarix seç.":"Tarixlərə uyğun uçuş qiymətini paketə əlavə et.";
+  !packageDestinations[S.d]||p!==1?"Canlı uçuş qiyməti dəstəklənən istiqamətlərdə 1 böyük sərnişin üçündür.":!available?"Növbəti 180 gün ərzində uyğun tarix seç.":"Tarixlərə uyğun uçuş qiymətini paketə əlavə et.";
 const fl=packageQuote?.amount??d.f*p,ht=Math.round(d.g*C.h[S.h].m*n*r),ml=C.m[S.m].v*n*p,tr=S.t==="group"?20*p:S.t==="vip"?50*Math.ceil(p/3):0;
 let ex=0;S.x.forEach(k=>ex+=C.x[k].v*p);
 const L=[[packageQuote?"Uçuş · canlı qiymət":"Uçuş · təxmini",fl],["Otel "+C.h[S.h].l+" · "+n+" gecə",ht],["Qidalanma",ml],["Transfer",tr],["Əlavələr",ex]];
@@ -500,7 +498,7 @@ packageButton.addEventListener("click",async()=>{
   calc();
   const timer=setTimeout(()=>pending.controller.abort(),65000);
   try{
-    const quote=await requestFlightQuote(dates.departure,dates.returnDate,pending.controller.signal);
+    const quote=await requestFlightQuote(dates.departure,dates.returnDate,pending.controller.signal,"GYD",packageDestinations[S.d]);
     if(packageRequest===pending)packageQuote={key:pending.key,amount:quote.customerTotal};
   }catch(error){
     if(packageRequest===pending)packageError={key:pending.key,text:error.name==="AbortError"?"Qiyməti hazırda yoxlaya bilmədik.":error.message};
@@ -678,9 +676,7 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
   const summary = document.querySelector('.flight-summary');
   let currentQuote;
   const destination = form.elements.destination;
-  const actionLabel = document.querySelector('#flight-action-label');
-  const facts = document.querySelector('#flight-facts');
-  const extrasSection = form.querySelector('.flight-extras');
+  const origin = form.elements.origin;
   const departure = form.elements.departure;
   const returnDate = form.elements.returnDate;
   const baku = Date.now() + 4 * 3600000;
@@ -800,7 +796,8 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
     const phone = typeof C !== 'undefined' ? C.w : '';
     if (!phone) return;
     const extras = [...form.querySelectorAll('[name="requestExtra"]:checked')].map(input => input.value);
-    const message = ['Salam! Bakı–İstanbul aviabilet sorğusu.',
+    const message = ['Salam! Aviabilet sorğusu.',
+      routeCities[currentQuote.originCode] + ' — ' + routeCities[currentQuote.destinationCode],
       currentQuote.departure + ' — ' + currentQuote.returnDate + ' · 1 nəfər · Ekonom',
       'Yekun: ' + money(currentQuote.customerTotal),
       ...(extras.length ? ['Əlavə seçimlər: ' + extras.join(', ')] : [])].join('\n');
@@ -821,25 +818,17 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
     button.disabled = false;
     returnDate.min = departure.value || departure.min;
     result.hidden = link.hidden = true;
-    const live = destination.value === 'istanbul';
-    button.formNoValidate = false;
-    actionLabel.textContent = live ? 'Canlı qiyməti yoxla' : 'Bilet təklifi al';
-    facts.hidden = extrasSection.hidden = !live;
-    status.textContent = live ? description : 'Bu istiqamət üzrə bilet təklifini WhatsApp-dan soruşa bilərsən.';
-
+    if (event.target === origin) {
+      const fromBaku = origin.value === 'GYD';
+      for (const option of destination.options) {
+        option.disabled = option.hidden = fromBaku ? option.value === 'GYD' : option.value !== 'GYD';
+      }
+      if (destination.selectedOptions[0]?.disabled) destination.value = fromBaku ? 'IST' : 'GYD';
+    }
+    status.textContent = description;
   });
   form.addEventListener('submit', async event => {
     event.preventDefault();
-    if (destination.value !== 'istanbul') {
-      const city = C.d[destination.value]?.n;
-      if (!city) return;
-      const message = ['Salam! Aviabilet təklifi almaq istəyirəm.',
-        'Bakı — ' + city, 'Gediş: ' + departure.value, 'Dönüş: ' + returnDate.value].join('\n');
-      status.textContent = 'Bilet sorğusu hazırdır. WhatsApp düyməsinə bas.';
-      link.href = 'https://wa.me/' + C.w + '?text=' + encodeURIComponent(message);
-      link.hidden = false;
-      return;
-    }
     if (active) return;
     const request = new AbortController();
     active = request;
@@ -851,13 +840,13 @@ w.onclick=()=>document.querySelector("#plan").scrollIntoView({behavior:"smooth"}
     status.textContent = 'Uçuşlar yoxlanılır…';
     const timer = setTimeout(() => request.abort(), 65000);
     try {
-      const quote = await requestFlightQuote(departure.value,returnDate.value,request.signal);
+      const quote = await requestFlightQuote(departure.value,returnDate.value,request.signal,origin.value,destination.value);
       if (active !== request) return;
       const price = document.createElement('strong');
       price.className = 'flight-price';
       animatePrice(price, quote.customerTotal);
       const details = document.createElement('p');
-      details.textContent = quote.departure + ' — ' + quote.returnDate;
+      details.textContent = routeCities[quote.originCode] + ' — ' + routeCities[quote.destinationCode] + ' · ' + quote.departure + ' — ' + quote.returnDate;
       status.textContent = 'Yekun qiymət';
       result.replaceChildren(price, details);
       result.hidden = false;
